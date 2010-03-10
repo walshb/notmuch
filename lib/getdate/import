@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+
+GNULIB=${HOME}/src/gnulib
+
+if [ ! -d ${GNULIB} ]; then
+    cat <<EOF >&2
+Error: No gnulib checkout found at ${GNULIB}
+
+Please checkout gnulib and/or update the GNULIB variable in this script.
+The following command may be convenient:
+
+	git clone git://git.sv.gnu.org/gnulib.git
+
+EOF
+    exit 1
+fi
+
+files="c-ctype.c
+	c-ctype.h
+	getdate.y
+	getdate.h
+	gettime.c
+	intprops.h
+	timespec.h
+	verify.h
+	xalloc.h
+	xalloc-die.c
+	xmalloc.c"
+
+for file in $files; do
+    cp ${GNULIB}/lib/$file .
+done
+
+commit=$(cd ${GNULIB}; git rev-parse HEAD)
+echo "Updated getdate source from gnulib commit:"
+echo "$commit"
