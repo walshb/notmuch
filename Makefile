@@ -41,7 +41,7 @@ Makefile.config: configure
 	@echo ""
 	./configure
 
-subdirs = compat emacs lib
+subdirs = compat emacs lib/getdate lib
 
 global_deps = Makefile Makefile.config Makefile.local \
 	$(subdirs:%=%/Makefile) $(subdirs:%=%/Makefile.local)

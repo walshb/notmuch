@@ -1,7 +1,7 @@
 dir := lib
 extra_cflags += -I$(dir)
 
-libnotmuch_c_srcs =		\
+libnotmuch_c_srcs :=		\
 	$(dir)/libsha1.c	\
 	$(dir)/message-file.c	\
 	$(dir)/messages.c	\
@@ -9,7 +9,7 @@ libnotmuch_c_srcs =		\
 	$(dir)/tags.c		\
 	$(dir)/xutil.c
 
-libnotmuch_cxx_srcs =		\
+libnotmuch_cxx_srcs :=		\
 	$(dir)/database.cc	\
 	$(dir)/directory.cc	\
 	$(dir)/index.cc		\
@@ -17,8 +17,8 @@ libnotmuch_cxx_srcs =		\
 	$(dir)/query.cc		\
 	$(dir)/thread.cc
 
-libnotmuch_modules = $(libnotmuch_c_srcs:.c=.o) $(libnotmuch_cxx_srcs:.cc=.o)
-$(dir)/notmuch.a: $(libnotmuch_modules)
+libnotmuch_modules := $(libnotmuch_c_srcs:.c=.o) $(libnotmuch_cxx_srcs:.cc=.o)
+$(dir)/notmuch.a: $(libnotmuch_modules) $(getdate_modules)
 	$(call quiet,AR) rcs $@ $^
 
 SRCS  := $(SRCS) $(libnotmuch_c_srcs) $(libnotmuch_cxx_srcs)

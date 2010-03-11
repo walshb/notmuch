@@ -1,0 +1,13 @@
+dir := lib/getdate
+extra_cflags += -I$(dir)
+
+getdate_c_srcs :=		\
+	$(dir)/c-ctype.c	\
+	$(dir)/getdate.c	\
+	$(dir)/xalloc-die.c	\
+	$(dir)/xmalloc.c
+
+getdate_modules := $(getdate_c_srcs:.c=.o)
+
+SRCS  := $(SRCS) $(getdate_c_srcs)
+CLEAN := $(CLEAN) $(getdate_modules) $(dir)/getdate.c
