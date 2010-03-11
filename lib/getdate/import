@@ -25,7 +25,6 @@ files="c-ctype.c
 	timespec.h
 	verify.h
 	xalloc.h
-	xalloc-die.c
 	xmalloc.c"
 
 for file in $files; do
