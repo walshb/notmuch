@@ -201,6 +201,22 @@ multiple parts get a header."
       ;; If sender is non-nil, set the From: header to its value.
       (when sender
 	(plist-put reply-headers :From sender))
+
+      (let ((filename (plist-get original :filename)))
+	(if (string-match-p "\\/\\.wumpster" filename)
+	    (progn (setq smtpmail-smtp-server "exeter.footholds.net"
+			 smtpmail-smtp-service 465
+			 smtpmail-stream-type 'ssl
+			 smtpmail-smtp-user "b@wumpster.com"
+			 message-default-headers (concat "Fcc: " (expand-file-name "~/Maildir/.wumpster.INBOX.Sent")))
+		   (plist-put reply-headers :From "Ben Walsh <b@wumpster.com>"))
+	  (setq smtpmail-smtp-server "smtp.mail.yahoo.com"
+		smtpmail-smtp-service 465
+		smtpmail-stream-type 'ssl
+		smtpmail-smtp-user "ben_w_123"
+		message-default-headers (concat "Fcc: " (expand-file-name "~/Maildir/.yahoo.Sent")))
+	  (plist-put reply-headers :From "Ben Walsh <ben_w_123@yahoo.co.uk>")))
+
       (let
 	  ;; Overlay the composition window on that being used to read
 	  ;; the original message.
