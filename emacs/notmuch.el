@@ -275,6 +275,13 @@ there will be called at other points of notmuch execution."
  :group 'notmuch-show
  :group 'notmuch-faces)
 
+(defface notmuch-message-unread-face
+ '((((class color) (background light)) (:background "#f0f0ff"))
+   (((class color) (background dark)) (:background "brightyellow" :foreground "black")))
+ "Face for the single-line message summary in notmuch-show-mode."
+ :group 'notmuch-show
+ :group 'notmuch-faces)
+
 (defface notmuch-search-date
   '((t :inherit default))
   "Face used in search mode for dates."

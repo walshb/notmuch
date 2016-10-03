@@ -471,7 +471,9 @@ message at DEPTH in the current thread."
 	    ") ("
 	    (notmuch-tag-format-tags tags tags)
 	    ")\n")
-    (overlay-put (make-overlay start (point)) 'face 'notmuch-message-summary-face)))
+    (overlay-put (make-overlay start (point)) 'face (if (member "unread" tags)
+							'notmuch-message-unread-face
+						      'notmuch-message-summary-face))))
 
 (defun notmuch-show-insert-header (header header-value)
   "Insert a single header."
@@ -1157,9 +1159,10 @@ is t, hide the part initially and show the button."
   (let ((msg (car tree))
 	(replies (cadr tree)))
     ;; We test whether there is a message or just some replies.
+    (notmuch-show-insert-thread (reverse replies) (1+ depth))
     (when msg
       (notmuch-show-insert-msg msg depth))
-    (notmuch-show-insert-thread replies (1+ depth))))
+    ))
 
 (defun notmuch-show-insert-thread (thread depth)
   "Insert the thread THREAD at depth DEPTH in the current forest."
