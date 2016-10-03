@@ -175,6 +175,16 @@ multiple parts get a header."
   (funcall original-func header references)
   (unless (bolp) (insert "\n")))
 
+(defun bw-other-headers (from)
+  (list (cons 'Fcc (if (string-match-p "wumpster" from)
+		       (expand-file-name "~/Maildir/.wumpster.INBOX.Sent")
+		     (expand-file-name "~/Maildir/.yahoo.Sent")))))
+
+(defun bw-reply-from (filename)
+  (if (string-match-p "\\/\\.wumpster" filename)
+      "Ben Walsh <b@wumpster.com>"
+    "Ben Walsh <ben_w_123@yahoo.co.uk>"))
+
 (defun notmuch-mua-reply (query-string &optional sender reply-all)
   (let ((args '("reply" "--format=sexp" "--format-version=4"))
 	(process-crypto notmuch-show-process-crypto)
@@ -202,20 +212,9 @@ multiple parts get a header."
       (when sender
 	(plist-put reply-headers :From sender))
 
-      (let ((filename (plist-get original :filename)))
-	(if (string-match-p "\\/\\.wumpster" filename)
-	    (progn (setq smtpmail-smtp-server "exeter.footholds.net"
-			 smtpmail-smtp-service 465
-			 smtpmail-stream-type 'ssl
-			 smtpmail-smtp-user "b@wumpster.com"
-			 message-default-headers (concat "Fcc: " (expand-file-name "~/Maildir/.wumpster.INBOX.Sent")))
-		   (plist-put reply-headers :From "Ben Walsh <b@wumpster.com>"))
-	  (setq smtpmail-smtp-server "smtp.mail.yahoo.com"
-		smtpmail-smtp-service 465
-		smtpmail-stream-type 'ssl
-		smtpmail-smtp-user "ben_w_123"
-		message-default-headers (concat "Fcc: " (expand-file-name "~/Maildir/.yahoo.Sent")))
-	  (plist-put reply-headers :From "Ben Walsh <ben_w_123@yahoo.co.uk>")))
+      (let* ((filename (plist-get original :filename))
+	     (reply-from (bw-reply-from filename)))
+	(plist-put reply-headers :From reply-from))
 
       (let
 	  ;; Overlay the composition window on that being used to read
@@ -351,6 +350,8 @@ modified. This function is notmuch addaptation of
   (unless (assq 'From other-headers)
     (push (cons 'From (message-make-from
 		       (notmuch-user-name) (notmuch-user-primary-email))) other-headers))
+
+  (setq other-headers (append (bw-other-headers (cdr (assq 'From other-headers))) other-headers))
 
   (notmuch-mua-pop-to-buffer (message-buffer-name "mail" to)
 			     (or switch-function (notmuch-mua-get-switch-function)))

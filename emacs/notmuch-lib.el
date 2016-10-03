@@ -155,6 +155,7 @@ For example, if you wanted to remove an \"inbox\" tag and add an
     (define-key map "s" 'notmuch-search)
     (define-key map "z" 'notmuch-tree)
     (define-key map "m" 'notmuch-mua-new-mail)
+    (define-key map "M" (lambda () (interactive) (notmuch-mua-new-mail t)))
     (define-key map "=" 'notmuch-refresh-this-buffer)
     (define-key map (kbd "M-=") 'notmuch-refresh-all-buffers)
     (define-key map "G" 'notmuch-poll-and-refresh-this-buffer)
@@ -258,7 +259,12 @@ depending on the value of `notmuch-poll-script'."
       (unless (string= notmuch-poll-script "")
 	(unless (equal (call-process notmuch-poll-script nil nil) 0)
 	  (error "Notmuch: poll script `%s' failed!" notmuch-poll-script)))
-    (switch-to-buffer (make-comint "notmuch" notmuch-command nil "new"))))
+    (let* ((notmuch-comint-buffer (make-comint "notmuch" notmuch-command nil "new"))
+	     (process (get-buffer-process notmuch-comint-buffer)))
+	(set-process-sentinel process (lambda (proc event)
+					(when (= 0 (process-exit-status proc))
+					  (notmuch))))
+	(switch-to-buffer notmuch-comint-buffer))))
 
 (defun notmuch-bury-or-kill-this-buffer ()
   "Undisplay the current buffer.
