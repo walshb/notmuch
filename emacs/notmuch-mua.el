@@ -115,6 +115,20 @@ multiple parts get a header."
 		(function :tag "Other"))
   :group 'notmuch-reply)
 
+(defcustom notmuch-mua-modify-headers-function nil
+  "Function to provide extra headers when writing a new mail or replying.
+   Called with an alist containing the existing headers.
+   Returns a new alist containing the modified headers."
+  :type 'function
+  :group 'notmuch-send)
+
+(defcustom notmuch-mua-reply-modify-headers-function nil
+  "Function to provide extra headers when replying.
+   Called with three plists containing headers, original message and reply message.
+   Returns a plist containing the modified headers."
+  :type 'function
+  :group 'notmuch-reply)
+
 ;;
 
 (defun notmuch-mua-get-switch-function ()
@@ -175,16 +189,6 @@ multiple parts get a header."
   (funcall original-func header references)
   (unless (bolp) (insert "\n")))
 
-(defun bw-other-headers (from)
-  (list (cons 'Fcc (if (string-match-p "wumpster" from)
-		       (expand-file-name "~/Maildir/.wumpster.INBOX.Sent")
-		     (expand-file-name "~/Maildir/.yahoo.Sent")))))
-
-(defun bw-reply-from (filename)
-  (if (string-match-p "\\/\\.wumpster" filename)
-      "Ben Walsh <b@wumpster.com>"
-    "Ben Walsh <ben_w_123@yahoo.co.uk>"))
-
 (defun notmuch-mua-reply (query-string &optional sender reply-all)
   (let ((args '("reply" "--format=sexp" "--format-version=4"))
 	(process-crypto notmuch-show-process-crypto)
@@ -212,9 +216,9 @@ multiple parts get a header."
       (when sender
 	(plist-put reply-headers :From sender))
 
-      (let* ((filename (plist-get original :filename))
-	     (reply-from (bw-reply-from filename)))
-	(plist-put reply-headers :From reply-from))
+      (when notmuch-mua-reply-modify-headers-function
+	(setq reply-headers (funcall notmuch-mua-reply-modify-headers-function
+				     reply-headers original reply)))
 
       (let
 	  ;; Overlay the composition window on that being used to read
@@ -351,7 +355,11 @@ modified. This function is notmuch addaptation of
     (push (cons 'From (message-make-from
 		       (notmuch-user-name) (notmuch-user-primary-email))) other-headers))
 
-  (setq other-headers (append (bw-other-headers (cdr (assq 'From other-headers))) other-headers))
+  (when notmuch-mua-modify-headers-function
+    (setq other-headers (funcall notmuch-mua-modify-headers-function other-headers)))
+
+  ;; Keep "message" library happy.
+  (setq user-mail-address (cdr (assq 'From other-headers)))
 
   (notmuch-mua-pop-to-buffer (message-buffer-name "mail" to)
 			     (or switch-function (notmuch-mua-get-switch-function)))
