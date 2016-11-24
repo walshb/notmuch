@@ -115,13 +115,6 @@ multiple parts get a header."
 		(function :tag "Other"))
   :group 'notmuch-reply)
 
-(defcustom notmuch-mua-modify-headers-function nil
-  "Function to provide extra headers when writing a new mail or replying.
-   Called with an alist containing the existing headers.
-   Returns a new alist containing the modified headers."
-  :type 'function
-  :group 'notmuch-send)
-
 (defcustom notmuch-mua-reply-modify-headers-function nil
   "Function to provide extra headers when replying.
    Called with three plists containing headers, original message and reply message.
@@ -354,9 +347,6 @@ modified. This function is notmuch addaptation of
   (unless (assq 'From other-headers)
     (push (cons 'From (message-make-from
 		       (notmuch-user-name) (notmuch-user-primary-email))) other-headers))
-
-  (when notmuch-mua-modify-headers-function
-    (setq other-headers (funcall notmuch-mua-modify-headers-function other-headers)))
 
   ;; Keep "message" library happy.
   (setq user-mail-address (cdr (assq 'From other-headers)))
