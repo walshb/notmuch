@@ -348,9 +348,6 @@ modified. This function is notmuch addaptation of
     (push (cons 'From (message-make-from
 		       (notmuch-user-name) (notmuch-user-primary-email))) other-headers))
 
-  ;; Keep "message" library happy.
-  (setq user-mail-address (cdr (assq 'From other-headers)))
-
   (notmuch-mua-pop-to-buffer (message-buffer-name "mail" to)
 			     (or switch-function (notmuch-mua-get-switch-function)))
   (let ((headers
@@ -561,9 +558,11 @@ unencrypted.  Really send? "))))
   (when (and (notmuch-mua-check-no-misplaced-secure-tag)
 	     (notmuch-mua-check-secure-tag-has-newline))
     (letf (((symbol-function 'message-do-fcc) #'notmuch-maildir-message-do-fcc))
-	  (if exit
-	      (message-send-and-exit arg)
-	    (message-send arg)))))
+      ;; Keep "message" library happy.
+      (setq user-mail-address (message-field-value "from" t))
+      (if exit
+	  (message-send-and-exit arg)
+	(message-send arg)))))
 
 (defun notmuch-mua-send-and-exit (&optional arg)
   (interactive "P")
