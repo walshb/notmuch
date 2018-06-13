@@ -24,11 +24,15 @@ $(function(){
     }
   });
   $(function(){
-  $('.multipart-alternative').tabs()
+    $('.multipart-alternative').tabs({
+      show: function(event, ui) {
+        $('.embedded-html').height($('.embedded-html').contents().height());
+      }
+    });
   });
   $(function(){
   $('.embedded-html').load(function(){
-      this.style.height = this.contentWindow.document.body.offsetHeight + 'px';
+      $(this).height($(this).contents().height());
     });
   });
 });
