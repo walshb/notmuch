@@ -21,11 +21,12 @@ except:
     use_bjoern=False
     
 # Configuration options
-safe_tags = bleach.sanitizer.ALLOWED_TAGS + [u'div', u'span', u'p', u'br', u'table', u'tr', u'td', u'th']
+safe_tags = bleach.sanitizer.ALLOWED_TAGS + [u'div', u'span', u'p', u'br', u'table', u'tr', u'td', u'th', u'tbody']
 linkify_plaintext = True # delays page load by about 0.02s of 0.20s budget
 show_thread_nav = True   # delays page load by about 0.04s of 0.20s budget
 
-prefix = "https://nmweb.evenmere.org"
+##prefix = "https://nmweb.evenmere.org"
+prefix = ''
 webprefix = prefix + "/static"
 cachedir = "static/cache" # special for webpy server; changeable if using your own
 
@@ -39,6 +40,11 @@ urls = (
   '/search/(.*)', 'search',
   '/show/(.*)', 'show',
   )
+
+
+def _join(*args):
+    return '/'.join(args)
+
 
 def urlencode_filter(s):
     if type(s) == 'Markup':
@@ -222,7 +228,8 @@ def format_message_walk(msg,mid):
     parts = ['main']
     for part in mywalk(msg):
       if part=='close-div':
-          parts.pop()
+          if parts:
+              parts.pop()
           yield '</div>'
       elif part.get_content_maintype() == 'multipart':
         yield '<div class="multipart-%s" id="%s">' % (part.get_content_subtype(),css_part_id(part.get_content_type(),parts))
@@ -257,16 +264,16 @@ def format_message_walk(msg,mid):
                                         tags=safe_tags).encode(part.get_content_charset('ascii'), 'xmlcharrefreplace'))
 	  (filename,cid) = link_to_cached_file(part,mid,counter)
 	  counter +=1
-	  yield '<iframe class="embedded-html" src="%s"></iframe>' % os.path.join(prefix,cachedir,mid,filename)
+          yield '<iframe class="embedded-html" src="%s"></iframe>' % _join(prefix,cachedir,mid,filename)
           yield '</div>'
         else:
           yield '<div id="%s">' % css_part_id(part.get_content_type(),parts)
           (filename,cid) = link_to_cached_file(part,mid,counter)
           counter += 1
-          yield '<a href="%s">%s (%s)</a>' % (os.path.join(prefix,
-                                                           cachedir,
-                                                           mid,
-                                                           filename),
+          yield '<a href="%s">%s (%s)</a>' % (_join(prefix,
+                                                    cachedir,
+                                                    mid,
+                                                    filename),
                                               filename,
                                               part.get_content_type())
           yield '</div>'
@@ -274,24 +281,24 @@ def format_message_walk(msg,mid):
         (filename,cid) = link_to_cached_file(part,mid,counter)
         if cid not in cid_refd:
           counter += 1
-          yield '<img src="%s" alt="%s">' % (os.path.join(prefix,
-                                                          cachedir,
-                                                          mid,
-                                                          filename),
+          yield '<img src="%s" alt="%s">' % (_join(prefix,
+                                                   cachedir,
+                                                   mid,
+                                                   filename),
                                              filename)
       else:
         (filename,cid) = link_to_cached_file(part,mid,counter)
         counter += 1
-        yield '<a href="%s">%s (%s)</a>' % (os.path.join(prefix,
-                                                         cachedir,
-                                                         mid,
-                                                         filename),
+        yield '<a href="%s">%s (%s)</a>' % (_join(prefix,
+                                                  cachedir,
+                                                  mid,
+                                                  filename),
                                             filename,
                                             part.get_content_type())
 env.globals['format_message'] = format_message
 
 def replace_cids(body,mid):
-    return string.replace(body,'cid:',os.path.join(prefix,cachedir,mid)+'/')
+    return string.replace(body,'cid:', _join(prefix,cachedir,mid)+'/')
 
 def find_cids(body):
     return re.findall(r'cid:([^ "\'>]*)', body)
